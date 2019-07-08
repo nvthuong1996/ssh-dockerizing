@@ -1,0 +1,18 @@
+FROM node:latest
+
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:1' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+RUN mkdir -p ~/.ssh && touch ~/.ssh/authorized_keys && chmod -R go= ~/.ssh
+RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDHqguHM+zrVZoTCRpF/6xTXPG8qeIEbUQbTOZpN+M8nlkuK6vFWkQaZj/32D4Volsi4PAS9anpnyIKclNAPFzmX3ZM6V6ndyZNrjvwCxL3uruaiSWp99OuYBNRn37nLSNMuRJJ0XSpsH1xuAKMU/pe1z3dGgiNfg3scT72L1ZwhKquoa2XJeykj9rdBdLSazzgIibXzvg8f2bqEl4EK7LhI6sTKjyggCOdLkJ+MVtLHTx2m48U6ZJCOVxAWb9PpmoQXig4hicUUro1VJfbMC7pG1NJ2i9nEqXxA4qBdKgya1xqkTEIIIL3bpMbUYJcS7JhPaByXvLF6jhceu4HOlJvYDdfw1CKNKCMRfq1+uEUkxPin/GVS1Q1UqB8RjMqmo0QfY8CDzBANl5au3n59VJhCQov1n3S5uMzBy1OKm4oCHbPyaXC/uubufcDE6BGGwS5kM/TL2ZRu8c/Rrv2lqrwSqytGqRoLTb7U/5Ac/475A74M0ErSNQVkS0nx0kdIJaFOXZgwk4hU9JsYmLGzE3LxFbYnforScWpgD1oTCPmrrOY8rWBHcqrcJIfTK3GRHfbXWR0AHEIWfb72p/BQvfg+ALqVldwRb3Y3o4BOc56GnNH6CBiW5uOAvvegznpqNehLGZ3w60w2Y/0IJSqear2BOEKCZVl5pxlOcegdCbEow== thuongptitdev" >> ~/.ssh/authorized_keys
+
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
